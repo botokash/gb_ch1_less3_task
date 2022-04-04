@@ -20,6 +20,17 @@ class Operators:
     def compute(value, x, y):
         return Operators.__map[value][1](x, y)
 
+    @staticmethod
+    def check_sign(curr_lexeme, last_lexeme):
+        return (curr_lexeme.value == '-' or curr_lexeme.value == '+') \
+                    and (not last_lexeme or (last_lexeme and
+                                              (last_lexeme.is_operator or last_lexeme.is_open_bracket)))
+
+    @staticmethod
+    def stack_full(stack, operator):
+        return stack and Operators.valid(stack[-1].value) \
+            and (Operators.grade(operator) <= Operators.grade(stack[-1].value))
+
 
 class CharParser:
 
@@ -110,14 +121,11 @@ def sorting_yard(expression, parser):
                     result_stack.append(operator)
 
         elif lexeme.is_operator:
-            if (lexeme.value == '-' or lexeme.value == '+')\
-                    and (not result_stack or (last_lexeme and
-                                              (last_lexeme.is_operator or last_lexeme.is_open_bracket))):
+            if Operators.check_sign(lexeme, last_lexeme):
                 lexeme.to_digit()
                 result_stack.append(lexeme)
             else:
-                if operator_stack and Operators.valid(operator_stack[-1].value)\
-                        and (Operators.grade(char) <= Operators.grade(operator_stack[-1].value)):
+                while Operators.stack_full(operator_stack, char):
                     result_stack.append(operator_stack.pop())
                 operator_stack.append(lexeme)
 
